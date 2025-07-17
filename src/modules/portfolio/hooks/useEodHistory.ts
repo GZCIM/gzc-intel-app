@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from "react";
-import { alova } from "../utils/alova"; // NEW
-import { useAuthContext, useDateContext } from "../../ui-library";
+import { useState, useEffect } from "react";
+import { apiClient } from "../../../utils/axios";
+import { useDateContext } from "../../ui-library";
 import type { QuoteInput, QuoteHistory } from "../../ui-library";
 
 export const useEodHistory = (quotes: QuoteInput[]) => {
@@ -8,8 +8,6 @@ export const useEodHistory = (quotes: QuoteInput[]) => {
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const { currentDate } = useDateContext();
-    const { getToken } = useAuthContext();
-    const getTokenRef = useRef(getToken);
 
     useEffect(() => {
         if (!quotes.length) return;
@@ -18,24 +16,16 @@ export const useEodHistory = (quotes: QuoteInput[]) => {
 
         const fetchEod = async () => {
             try {
-                const token = await getTokenRef.current(); // UPDATED
-                const request = alova.Post<Record<string, QuoteHistory>>( // NEW
-                    "/historical_quote/",
-                    {
-                        quotes,
-                        currentDate: currentDate.toISOString().split("T")[0],
-                    },
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                            "Content-Type": "application/json",
-                        },
-                    }
-                );
-                const response = await request.send(); // NEW
-                setHistory(
-                    response.data as unknown as Record<string, QuoteHistory>
-                ); // UPDATED
+                // Token is now handled automatically by the apiClient interceptor
+                console.log("[useEodHistory] Making authenticated request...");
+
+                const response = await apiClient.post<
+                    Record<string, QuoteHistory>
+                >("/historical_quote/", {
+                    quotes,
+                    currentDate: currentDate.toISOString().split("T")[0],
+                });
+                setHistory(response.data);
             } catch (err: unknown) {
                 console.error("[useEodHistory] Fetch error:", err);
                 setError(err instanceof Error ? err.message : "Unknown error");

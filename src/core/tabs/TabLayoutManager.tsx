@@ -5,7 +5,7 @@ import { useUserSettings } from '../../hooks/useUserSettings'
 import { useViewMemory } from '../../hooks/useViewMemory'
 import { TabCreationModal } from '../../components/TabCreationModal'
 import { stateManager } from '../../services/StateManager'
-import { useUser } from '../../contexts/UserContext'
+import { useUser } from '../../hooks/useUser'
 
 // Component in tab configuration for dynamic tabs
 export interface ComponentInTab {
@@ -45,40 +45,40 @@ interface TabLayoutContextValue {
   // Current state
   currentLayout: TabLayout | null
   activeTabId: string | null
-  
+
   // Layout management
   layouts: TabLayout[]
   defaultLayout: TabLayout | null
   userLayouts: TabLayout[]
-  
+
   // Actions
   setActiveTab: (tabId: string) => void
   addTab: (tab: Omit<TabConfig, 'id'>) => TabConfig
   removeTab: (tabId: string) => void
   updateTab: (tabId: string, updates: Partial<TabConfig>) => void
   reorderTabs: (newTabs: TabConfig[]) => void
-  
+
   // Enhanced tab creation with modal
   createTabWithPrompt: () => void
   showTabModal: boolean
   setShowTabModal: (show: boolean) => void
   handleCreateTab: (title: string, type: string) => void
-  
+
   // Layout actions
   saveCurrentLayout: (name: string) => void
   loadLayout: (layoutId: string) => void
   deleteLayout: (layoutId: string) => void
   resetToDefault: () => void
-  
+
   // Grid layout actions
   updateTabGridLayout: (tabId: string, gridLayout: any[]) => void
   toggleTabGridLayout: (tabId: string, enabled: boolean) => void
-  
+
   // Dynamic tab component management
   addComponentToTab: (tabId: string, component: ComponentInTab) => void
   removeComponentFromTab: (tabId: string, componentId: string) => void
   updateComponentInTab: (tabId: string, componentId: string, updates: Partial<ComponentInTab>) => void
-  
+
   // Edit mode management
   toggleTabEditMode: (tabId: string) => void
 }
@@ -147,7 +147,7 @@ export function TabLayoutProvider({ children }: TabLayoutProviderProps) {
   // Load saved layouts from localStorage when user changes
   useEffect(() => {
     console.log(`TabLayoutManager: Loading layouts for user ${userId}`)
-    
+
     // First, load all saved layouts for this user
     let allLayouts = [DEFAULT_LAYOUT]
     const savedLayouts = localStorage.getItem(getUserKey('gzc-intel-layouts'))
@@ -168,7 +168,7 @@ export function TabLayoutProvider({ children }: TabLayoutProviderProps) {
     // Load the current layout with all its tabs for this user
     let layoutToUse = DEFAULT_LAYOUT
     const savedCurrentLayoutStr = localStorage.getItem(getUserKey('gzc-intel-current-layout'))
-    
+
     if (savedCurrentLayoutStr) {
       try {
         const parsedCurrentLayout = JSON.parse(savedCurrentLayoutStr)
@@ -234,15 +234,15 @@ export function TabLayoutProvider({ children }: TabLayoutProviderProps) {
       ...tab,
       id: uuidv4()
     }
-    
+
     const updatedLayout = {
       ...currentLayout,
       tabs: [...currentLayout.tabs, newTab],
       updatedAt: new Date().toISOString()
     }
-    
+
     setCurrentLayout(updatedLayout)
-    
+
     // Update in layouts array
     if (currentLayout.isDefault) {
       // For default layout, we need to update it in the layouts array
@@ -252,13 +252,13 @@ export function TabLayoutProvider({ children }: TabLayoutProviderProps) {
       // For user layouts, update normally
       setLayouts(layouts.map(l => l.id === currentLayout.id ? updatedLayout : l))
     }
-    
+
     // Force save current layout immediately
     localStorage.setItem(getUserKey('gzc-intel-current-layout'), JSON.stringify(updatedLayout))
-    
+
     // Set as active tab
     setActiveTabId(newTab.id)
-    
+
     // Return the new tab
     return newTab
   }
@@ -275,21 +275,21 @@ export function TabLayoutProvider({ children }: TabLayoutProviderProps) {
     if (!tab || tab.closable === false || currentLayout.tabs.length === 1) {
       return
     }
-    
+
     const updatedTabs = currentLayout.tabs.filter(t => t.id !== tabId)
     const updatedLayout = {
       ...currentLayout,
       tabs: updatedTabs,
       updatedAt: new Date().toISOString()
     }
-    
+
     setCurrentLayout(updatedLayout)
-    
+
     // Update in layouts array if it's a saved layout
     if (!currentLayout.isDefault) {
       setLayouts(layouts.map(l => l.id === currentLayout.id ? updatedLayout : l))
     }
-    
+
     // If we removed the active tab, switch to first available
     if (activeTabId === tabId && updatedTabs.length > 0) {
       setActiveTabId(updatedTabs[0].id)
@@ -299,14 +299,14 @@ export function TabLayoutProvider({ children }: TabLayoutProviderProps) {
   const updateTab = (tabId: string, updates: Partial<TabConfig>) => {
     const updatedLayout = {
       ...currentLayout,
-      tabs: currentLayout.tabs.map(t => 
+      tabs: currentLayout.tabs.map(t =>
         t.id === tabId ? { ...t, ...updates } : t
       ),
       updatedAt: new Date().toISOString()
     }
-    
+
     setCurrentLayout(updatedLayout)
-    
+
     // Update in layouts array if it's a saved layout
     if (!currentLayout.isDefault) {
       setLayouts(layouts.map(l => l.id === currentLayout.id ? updatedLayout : l))
@@ -322,7 +322,7 @@ export function TabLayoutProvider({ children }: TabLayoutProviderProps) {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
-    
+
     setLayouts([...layouts, newLayout])
     setCurrentLayout(newLayout)
   }
@@ -344,9 +344,9 @@ export function TabLayoutProvider({ children }: TabLayoutProviderProps) {
     if (!layout || layout.isDefault) {
       return
     }
-    
+
     setLayouts(layouts.filter(l => l.id !== layoutId))
-    
+
     // If we deleted the current layout, switch to default
     if (currentLayout.id === layoutId) {
       setCurrentLayout(defaultLayout)
@@ -365,9 +365,9 @@ export function TabLayoutProvider({ children }: TabLayoutProviderProps) {
       tabs: newTabs,
       updatedAt: new Date().toISOString()
     }
-    
+
     setCurrentLayout(updatedLayout)
-    
+
     // Update in layouts array if it's a saved layout
     if (!currentLayout.isDefault) {
       setLayouts(layouts.map(l => l.id === currentLayout.id ? updatedLayout : l))
@@ -377,14 +377,14 @@ export function TabLayoutProvider({ children }: TabLayoutProviderProps) {
   const updateTabGridLayout = (tabId: string, gridLayout: any[]) => {
     const updatedLayout = {
       ...currentLayout,
-      tabs: currentLayout.tabs.map(t => 
+      tabs: currentLayout.tabs.map(t =>
         t.id === tabId ? { ...t, gridLayout } : t
       ),
       updatedAt: new Date().toISOString()
     }
-    
+
     setCurrentLayout(updatedLayout)
-    
+
     // Update in layouts array if it's a saved layout
     if (!currentLayout.isDefault) {
       setLayouts(layouts.map(l => l.id === currentLayout.id ? updatedLayout : l))
@@ -394,14 +394,14 @@ export function TabLayoutProvider({ children }: TabLayoutProviderProps) {
   const toggleTabGridLayout = (tabId: string, enabled: boolean) => {
     const updatedLayout = {
       ...currentLayout,
-      tabs: currentLayout.tabs.map(t => 
+      tabs: currentLayout.tabs.map(t =>
         t.id === tabId ? { ...t, gridLayoutEnabled: enabled } : t
       ),
       updatedAt: new Date().toISOString()
     }
-    
+
     setCurrentLayout(updatedLayout)
-    
+
     // Update in layouts array if it's a saved layout
     if (!currentLayout.isDefault) {
       setLayouts(layouts.map(l => l.id === currentLayout.id ? updatedLayout : l))
@@ -420,7 +420,7 @@ export function TabLayoutProvider({ children }: TabLayoutProviderProps) {
       alert(`Tab name "${title}" already exists. Please choose a different name.`)
       return
     }
-    
+
     const newTab: Omit<TabConfig, 'id'> = {
       name: title,
       component: 'UserTabContainer', // Fixed component ID for all user tabs
@@ -434,7 +434,7 @@ export function TabLayoutProvider({ children }: TabLayoutProviderProps) {
     }
 
     const createdTab = addTab(newTab)
-    
+
     // Auto-save tab immediately
     if (!currentLayout.isDefault) {
       // Update existing layout
@@ -445,7 +445,7 @@ export function TabLayoutProvider({ children }: TabLayoutProviderProps) {
       }
       setLayouts(layouts.map(l => l.id === currentLayout.id ? updatedLayout : l))
     }
-    
+
     setShowTabModal(false)
   }
 
@@ -465,21 +465,21 @@ export function TabLayoutProvider({ children }: TabLayoutProviderProps) {
 
     const updatedLayout = {
       ...currentLayout,
-      tabs: currentLayout.tabs.map(t => 
-        t.id === tabId 
+      tabs: currentLayout.tabs.map(t =>
+        t.id === tabId
           ? { ...t, components: [...(t.components || []), component] }
           : t
       ),
       updatedAt: new Date().toISOString()
     }
-    
+
     setCurrentLayout(updatedLayout)
-    
+
     // Save to view memory for dynamic tabs
     if (tab.memoryStrategy === 'hybrid' || tab.memoryStrategy === 'redis') {
       saveLayout(`tab-${tabId}`, updatedLayout.tabs.find(t => t.id === tabId)?.components)
     }
-    
+
     // Update in layouts array if it's a saved layout
     if (!currentLayout.isDefault) {
       setLayouts(layouts.map(l => l.id === currentLayout.id ? updatedLayout : l))
@@ -492,21 +492,21 @@ export function TabLayoutProvider({ children }: TabLayoutProviderProps) {
 
     const updatedLayout = {
       ...currentLayout,
-      tabs: currentLayout.tabs.map(t => 
-        t.id === tabId 
+      tabs: currentLayout.tabs.map(t =>
+        t.id === tabId
           ? { ...t, components: (t.components || []).filter(c => c.id !== componentId) }
           : t
       ),
       updatedAt: new Date().toISOString()
     }
-    
+
     setCurrentLayout(updatedLayout)
-    
+
     // Save to view memory
     if (tab.memoryStrategy === 'hybrid' || tab.memoryStrategy === 'redis') {
       saveLayout(`tab-${tabId}`, updatedLayout.tabs.find(t => t.id === tabId)?.components)
     }
-    
+
     // Update in layouts array if it's a saved layout
     if (!currentLayout.isDefault) {
       setLayouts(layouts.map(l => l.id === currentLayout.id ? updatedLayout : l))
@@ -519,11 +519,11 @@ export function TabLayoutProvider({ children }: TabLayoutProviderProps) {
 
     const updatedLayout = {
       ...currentLayout,
-      tabs: currentLayout.tabs.map(t => 
-        t.id === tabId 
-          ? { 
-              ...t, 
-              components: (t.components || []).map(c => 
+      tabs: currentLayout.tabs.map(t =>
+        t.id === tabId
+          ? {
+              ...t,
+              components: (t.components || []).map(c =>
                 c.id === componentId ? { ...c, ...updates } : c
               )
             }
@@ -531,14 +531,14 @@ export function TabLayoutProvider({ children }: TabLayoutProviderProps) {
       ),
       updatedAt: new Date().toISOString()
     }
-    
+
     setCurrentLayout(updatedLayout)
-    
+
     // Save to view memory with real-time updates
     if (tab.memoryStrategy === 'hybrid' || tab.memoryStrategy === 'redis') {
       saveLayout(`tab-${tabId}`, updatedLayout.tabs.find(t => t.id === tabId)?.components)
     }
-    
+
     // Update in layouts array if it's a saved layout
     if (!currentLayout.isDefault) {
       setLayouts(layouts.map(l => l.id === currentLayout.id ? updatedLayout : l))
@@ -551,14 +551,14 @@ export function TabLayoutProvider({ children }: TabLayoutProviderProps) {
 
     const updatedLayout = {
       ...currentLayout,
-      tabs: currentLayout.tabs.map(t => 
+      tabs: currentLayout.tabs.map(t =>
         t.id === tabId ? { ...t, editMode: !t.editMode } : t
       ),
       updatedAt: new Date().toISOString()
     }
-    
+
     setCurrentLayout(updatedLayout)
-    
+
     // Update in layouts array if it's a saved layout
     if (!currentLayout.isDefault) {
       setLayouts(layouts.map(l => l.id === currentLayout.id ? updatedLayout : l))
@@ -595,7 +595,7 @@ export function TabLayoutProvider({ children }: TabLayoutProviderProps) {
   return (
     <TabLayoutContext.Provider value={value}>
       {children}
-      <TabCreationModal 
+      <TabCreationModal
         isOpen={showTabModal}
         onClose={() => setShowTabModal(false)}
         onCreateTab={handleCreateTab}

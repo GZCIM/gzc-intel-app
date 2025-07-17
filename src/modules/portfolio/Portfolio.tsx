@@ -4,20 +4,12 @@ import { PortfolioFilters } from "./components/PortfolioFilters";
 import { PortfolioTable } from "./components/PortfolioTable";
 import { PortfolioFilter } from "./types/portfolio";
 import { useQuoteStream } from "./hooks/useQuoteStream";
-// Mock contexts for now since ui-library has issues
-const useQuoteContext = () => ({
-    updateQuote: (quote: any) => console.log('Quote update:', quote)
-});
-
-const useAuthContext = () => ({
-    getToken: async () => 'mock-token'
-});
+import { useAuth, useQuote } from "../ui-library";
 import { quantumTheme } from "../../theme/quantum";
 
 const Portfolio = () => {
-    const contextValue = useAuthContext();
-    const { getToken } = contextValue;
-    const { updateQuote } = useQuoteContext();
+    const { getToken } = useAuth();
+    const { updateQuote } = useQuote();
 
     useEffect(() => {
         console.log("[Portfolio] Component mounted");
@@ -33,18 +25,20 @@ const Portfolio = () => {
         position: "",
         search: "",
         assetClass: "",
-        status: ""
+        status: "",
     });
 
     return (
-        <div style={{ 
-            height: '100%',
-            width: '100%',
-            backgroundColor: quantumTheme.background,
-            color: quantumTheme.text,
-            padding: '16px',
-            overflow: 'auto'
-        }}>
+        <div
+            style={{
+                height: "100%",
+                width: "100%",
+                backgroundColor: quantumTheme.background,
+                color: quantumTheme.text,
+                padding: "16px",
+                overflow: "auto",
+            }}
+        >
             <PortfolioMetrics isConnected={true} />
             <PortfolioFilters filters={filters} onFilterChange={setFilters} />
             <PortfolioTable filters={filters} />
@@ -52,6 +46,6 @@ const Portfolio = () => {
     );
 };
 
-Portfolio.displayName = 'Portfolio';
+Portfolio.displayName = "Portfolio";
 
 export default Portfolio;

@@ -1,23 +1,21 @@
-import { useState, useEffect, useRef } from "react";
-import { useAuthContext, useDateContext} from "../../ui-library";
-import { alova } from "../utils/alova"; // uses baseURL internally
+import { useState, useEffect } from "react";
+import { useDateContext } from "../../ui-library";
+import { apiClient } from "../../../utils/axios";
 import { PortfolioItem, PortfolioFilter } from "../types/portfolio";
 
-
 export const usePortfolioData = (filters?: PortfolioFilter) => {
-    //const getTokenRef = useRef(getToken);
     const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const { currentDate } = useDateContext();
-    const { getToken } = useAuthContext();
     useEffect(() => {
         const fetchData = async () => {
             try {
                 setIsLoading(true);
 
-                const token = await getToken();
-                console.log("[PortfolioData] Token:", token);
+                // Token is now handled automatically by the apiClient interceptor
+                console.log("[PortfolioData] Making authenticated request...");
+
                 const params = new URLSearchParams();
                 if (filters?.symbol) params.append("symbol", filters.symbol);
                 if (filters?.fundId)
@@ -33,19 +31,12 @@ export const usePortfolioData = (filters?: PortfolioFilter) => {
                 }
 
                 console.log("[PortfolioData] Filters:", filters);
-                const url = `/portfolio?${params.toString()}`; // relative to baseURL
+                const url = `/portfolio?${params.toString()}`;
                 console.log("[PortfolioData] Fetching:", url);
 
-                const request = alova.Get<{ data: { data: PortfolioItem[] } }>(
-                    url,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
-                    }
-                );
-
-                const response = await request.send();
+                const response = await apiClient.get<{
+                    data: { data: PortfolioItem[] };
+                }>(url);
                 console.log("[PortfolioData] Response:", response);
 
                 if (response?.data) {
@@ -75,7 +66,6 @@ export const usePortfolioData = (filters?: PortfolioFilter) => {
         filters?.trader,
         filters?.position,
         currentDate,
-        getToken
     ]);
 
     return { portfolio, isLoading, error };

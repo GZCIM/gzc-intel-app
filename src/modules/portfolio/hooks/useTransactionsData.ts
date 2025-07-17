@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from "react";
-import { useAuthContext, useDateContext } from "../../ui-library";
-import { alova } from "../utils/alova"; // NEW
+import { useState, useEffect } from "react";
+import { useDateContext } from "../../ui-library";
+import { apiClient } from "../../../utils/axios";
 import { Transaction } from "../types/transaction";
 
 export const useTransactionsData = () => {
@@ -8,14 +8,15 @@ export const useTransactionsData = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const { currentDate } = useDateContext();
-    const { getToken } = useAuthContext();
     useEffect(() => {
         const fetchData = async () => {
             try {
                 setIsLoading(true);
 
-                const token = await getToken();
-                console.log("[TransactionsData] Token:", token);
+                // Token is now handled automatically by the apiClient interceptor
+                console.log(
+                    "[TransactionsData] Making authenticated request..."
+                );
 
                 const params = new URLSearchParams();
                 if (currentDate) {
@@ -28,16 +29,9 @@ export const useTransactionsData = () => {
                 const url = `/transactions/unmatched?${params.toString()}`;
                 console.log("[TransactionsData] Fetching:", url);
 
-                const request = alova.Get<{ data: { data: Transaction[] } }>(
-                    url,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
-                    }
-                );
-
-                const response = await request.send();
+                const response = await apiClient.get<{
+                    data: { data: Transaction[] };
+                }>(url);
                 console.log("[TransactionsData] Response:", response);
 
                 if (response?.data) {
@@ -63,7 +57,7 @@ export const useTransactionsData = () => {
         fetchData();
         const interval = setInterval(fetchData, 5 * 60 * 1000); // 5-minute polling
         return () => clearInterval(interval);
-    }, [currentDate, getToken]);
+    }, [currentDate]);
 
     return { transactions, isLoading, error };
 };
