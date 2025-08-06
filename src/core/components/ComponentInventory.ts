@@ -77,7 +77,8 @@ export class ComponentInventory {
       subcategories: [
         { id: 'charts', name: 'Charts', description: 'Various chart types', tags: ['chart', 'line', 'bar', 'pie'] },
         { id: 'tables', name: 'Data Tables', description: 'Advanced data grids', tags: ['table', 'grid', 'data'] },
-        { id: 'dashboards', name: 'Dashboard Widgets', description: 'Pre-built dashboard components', tags: ['dashboard', 'widget', 'kpi'] }
+        { id: 'dashboards', name: 'Dashboard Widgets', description: 'Pre-built dashboard components', tags: ['dashboard', 'widget', 'kpi'] },
+        { id: 'volatility', name: 'Volatility Analysis', description: 'Options volatility surfaces and analysis', tags: ['volatility', 'options', 'surface'] }
       ]
     })
 
@@ -102,6 +103,18 @@ export class ComponentInventory {
       subcategories: [
         { id: 'feeds', name: 'Data Feeds', description: 'Real-time data connections', tags: ['feed', 'realtime', 'websocket'] },
         { id: 'forms', name: 'Forms & Inputs', description: 'Data entry components', tags: ['form', 'input', 'validation'] }
+      ]
+    })
+
+    this.addCategory({
+      id: 'analytics',
+      name: 'Analytics',
+      icon: 'activity',
+      description: 'Analytics and insights components',
+      color: '#9B59B6',
+      subcategories: [
+        { id: 'dashboard', name: 'Analytics Dashboards', description: 'Comprehensive analytics views', tags: ['analytics', 'dashboard', 'insights'] },
+        { id: 'metrics', name: 'Metrics & KPIs', description: 'Key performance indicators', tags: ['metrics', 'kpi', 'performance'] }
       ]
     })
 
@@ -139,6 +152,29 @@ export class ComponentInventory {
       complexity: 'complex',
       quality: 'production',
       source: 'port-3200'
+    })
+
+    // Bloomberg Volatility Analysis component
+    this.addComponent({
+      id: 'bloomberg-volatility',
+      name: 'Bloomberg Volatility Analysis',
+      displayName: 'Volatility Analysis',
+      category: 'visualization',
+      subcategory: 'volatility',
+      description: 'Professional FX options volatility surface visualization with smile analysis and term structure. Real-time Bloomberg data.',
+      defaultSize: { w: 10, h: 8 },
+      minSize: { w: 8, h: 6 },
+      maxSize: { w: 12, h: 12 },
+      tags: ['volatility', 'options', 'bloomberg', 'fx', 'surface', '3d', 'smile', 'term-structure', 'real-time'],
+      complexity: 'complex',
+      quality: 'enhanced',
+      source: 'internal',
+      dependencies: ['plotly.js', 'd3', 'axios'],
+      props: {
+        apiEndpoint: process.env.NODE_ENV === 'development' 
+          ? 'http://localhost:8080' 
+          : 'http://bloomberg-gateway.bloomberg-gateway'
+      }
     })
 
     this.buildSearchIndex()
@@ -299,6 +335,7 @@ if (!componentInventory.getComponent('portfolio')) {
   // Rebuild search index to ensure it's searchable
   componentInventory.rebuildSearchIndex()
 }
+
 
 // Expose to window for debugging in development
 if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
