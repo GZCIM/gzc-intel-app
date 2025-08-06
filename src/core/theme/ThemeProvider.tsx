@@ -92,11 +92,25 @@ export function ThemeProvider({
     try {
       const persisted = localStorage.getItem(persistenceKey)
       if (persisted) {
-        const parsed = JSON.parse(persisted)
-        dispatch({ type: 'LOAD_PERSISTED_STATE', payload: parsed })
+        // Handle legacy string values
+        if (persisted === 'professional' || persisted === 'dark' || persisted === 'light') {
+          // Convert legacy string to proper format
+          const legacyState = {
+            currentTheme: persisted,
+            preferences: {},
+            customThemes: []
+          }
+          localStorage.setItem(persistenceKey, JSON.stringify(legacyState))
+          dispatch({ type: 'LOAD_PERSISTED_STATE', payload: legacyState })
+        } else {
+          const parsed = JSON.parse(persisted)
+          dispatch({ type: 'LOAD_PERSISTED_STATE', payload: parsed })
+        }
       }
     } catch (error) {
       console.warn('Failed to load persisted theme state:', error)
+      // Clear corrupted data
+      localStorage.removeItem(persistenceKey)
     }
   }, [persistenceKey])
 
@@ -162,9 +176,11 @@ export function ThemeProvider({
     }
 
     // Apply custom properties
-    Object.entries(state.preferences.customProperties).forEach(([key, value]) => {
-      root.style.setProperty(key, value)
-    })
+    if (state.preferences.customProperties) {
+      Object.entries(state.preferences.customProperties).forEach(([key, value]) => {
+        root.style.setProperty(key, value)
+      })
+    }
 
     // Set theme attribute
     root.setAttribute('data-theme', state.currentTheme)

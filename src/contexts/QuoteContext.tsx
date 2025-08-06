@@ -66,6 +66,20 @@ export const QuoteProvider: React.FC<QuoteProviderProps> = ({
     // Get WebSocket URL from environment
     const getWebSocketUrl = useCallback(
         (streamType: "esp" | "rfs" | "exec") => {
+            // Check if we have a specific WebSocket URL for this stream type
+            const envKey = `VITE_WEBSOCKET_${streamType.toUpperCase()}` as keyof ImportMetaEnv;
+            const specificUrl = import.meta.env[envKey];
+            
+            if (specificUrl) {
+                // If it's a relative URL (starts with /), construct full WebSocket URL
+                if (specificUrl.startsWith('/')) {
+                    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                    return `${protocol}//${window.location.host}${specificUrl}`;
+                }
+                return specificUrl;
+            }
+            
+            // Fallback to VITE_STREAM_URL
             const baseUrl =
                 import.meta.env.VITE_STREAM_URL || "ws://localhost:5000";
             return `${baseUrl}/ws_${streamType}`;

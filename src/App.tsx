@@ -84,9 +84,6 @@ function AppContent() {
                             paddingBottom: "40px",
                         }}
                     >
-                        <div className="p-4">
-                            <QuoteFlowDebugger />
-                        </div>
                         <EnhancedComponentLoader />
                     </main>
                 </div>
@@ -158,8 +155,7 @@ function AppContent() {
                     </div>
                 </div>
 
-                {/* WebSocket connection debugger - Always visible for authorization testing */}
-                <QuoteFlowDebugger />
+                {/* WebSocket connection debugger - Now available through Tools menu */}
 
                 {/* Debug Components - Only in Development */}
                 {process.env.NODE_ENV === "development" && (

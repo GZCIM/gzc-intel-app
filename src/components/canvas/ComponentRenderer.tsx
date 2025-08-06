@@ -17,6 +17,9 @@ const componentMap: Record<string, () => Promise<any>> = {
   'gzc-portfolio': () => import('../gzc-portfolio/GZCPortfolioComponent').then(m => m.GZCPortfolioComponent),
   'gzc-analytics': () => import('../gzc-analytics/AnalyticsDashboard').then(m => m.AnalyticsDashboard),
   
+  // Bloomberg Volatility Analysis
+  'bloomberg-volatility': () => import('../bloomberg-volatility').then(m => m.VolatilityAnalysis),
+  
   // Placeholder components - will show the nice placeholder UI for now
   'line-chart': () => Promise.resolve(null),
   'area-chart': () => Promise.resolve(null),

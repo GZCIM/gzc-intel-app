@@ -336,6 +336,33 @@ if (!componentInventory.getComponent('portfolio')) {
   componentInventory.rebuildSearchIndex()
 }
 
+// Ensure bloomberg-volatility component is registered
+if (!componentInventory.getComponent('bloomberg-volatility')) {
+  componentInventory.addComponent({
+    id: 'bloomberg-volatility',
+    name: 'Bloomberg Volatility Analysis',
+    displayName: 'Volatility Analysis',
+    category: 'visualization',
+    subcategory: 'volatility',
+    description: 'Professional FX options volatility surface visualization with smile analysis and term structure. Real-time Bloomberg data.',
+    defaultSize: { w: 10, h: 8 },
+    minSize: { w: 8, h: 6 },
+    maxSize: { w: 12, h: 12 },
+    tags: ['volatility', 'options', 'bloomberg', 'fx', 'surface', '3d', 'smile', 'term-structure', 'real-time'],
+    complexity: 'complex',
+    quality: 'enhanced',
+    source: 'internal',
+    dependencies: ['plotly.js', 'd3', 'axios'],
+    props: {
+      apiEndpoint: process.env.NODE_ENV === 'development' 
+        ? 'http://localhost:8080' 
+        : 'http://bloomberg-gateway.bloomberg-gateway'
+    }
+  })
+  
+  componentInventory.rebuildSearchIndex()
+}
+
 
 // Expose to window for debugging in development
 if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {

@@ -3,14 +3,24 @@ import axios from "axios";
 const API_BASE_URL =
     import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 
+// Helper function to construct WebSocket URL
+const getWebSocketUrl = (path: string): string => {
+    // If the path starts with /, it's relative - construct from current location
+    if (path.startsWith('/')) {
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        return `${protocol}//${window.location.host}${path}`;
+    }
+    // Otherwise, it's a full URL
+    return path;
+};
+
 const API = {
     ESP_WEBSOCKET:
-        import.meta.env.VITE_WEBSOCKET_ESP || "ws://localhost:5000/ws_esp",
+        import.meta.env.VITE_WEBSOCKET_ESP || getWebSocketUrl("/ws_esp"),
     RFS_WEBSOCKET:
-        import.meta.env.VITE_WEBSOCKET_RFS || "ws://localhost:5000/ws_rfs",
+        import.meta.env.VITE_WEBSOCKET_RFS || getWebSocketUrl("/ws_rfs"),
     EXECUTION_WEBSOCKET:
-        import.meta.env.VITE_WEBSOCKET_EXECUTION ||
-        "ws://localhost:5000/ws_execution",
+        import.meta.env.VITE_WEBSOCKET_EXECUTION || getWebSocketUrl("/ws_execution"),
     REQUEST_RFS_QUOTE:
         import.meta.env.VITE_RFS_QUOTE_REQUEST_URL ||
         `${API_BASE_URL}/request_quote`,

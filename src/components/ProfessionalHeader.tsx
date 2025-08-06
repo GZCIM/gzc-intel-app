@@ -6,6 +6,9 @@ import { ThemeSelector } from './ThemeSelector'
 import { GZCLogo } from './GZCLogo'
 import { TabContextMenu } from './TabContextMenu'
 import { UserProfile } from './UserProfile'
+import { ToolsMenu } from './ToolsMenu'
+import { DraggableWindow } from './DraggableWindow'
+import { AuthDebugWindow } from './AuthDebugWindow'
 
 interface Tab {
   id: string
@@ -36,6 +39,7 @@ export const ProfessionalHeader = () => {
     tabId: string
     position: { x: number; y: number }
   }>({ isOpen: false, tabId: '', position: { x: 0, y: 0 } })
+  const [showAuthDebugger, setShowAuthDebugger] = useState(false)
 
   useEffect(() => {
     if (currentLayout) {
@@ -284,6 +288,9 @@ export const ProfessionalHeader = () => {
           </span>
         </motion.div>
         
+        {/* Tools Menu */}
+        <ToolsMenu onOpenAuthDebugger={() => setShowAuthDebugger(true)} />
+        
         {/* User Profile */}
         <UserProfile />
         
@@ -323,6 +330,18 @@ export const ProfessionalHeader = () => {
         position={contextMenu.position}
         onClose={handleCloseContextMenu}
       />
+
+      {/* Authorization Debug Window */}
+      <DraggableWindow
+        title="Authorization Debug"
+        isOpen={showAuthDebugger}
+        onClose={() => setShowAuthDebugger(false)}
+        defaultPosition={{ x: window.innerWidth - 450, y: 100 }}
+        width={400}
+        height={600}
+      >
+        <AuthDebugWindow />
+      </DraggableWindow>
 
     </motion.div>
   )
